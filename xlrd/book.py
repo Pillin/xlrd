@@ -1134,6 +1134,7 @@ class Book(BaseObject):
             print("SST processing took %.2f seconds" % (t1 - t0, ), file=self.logfile)
 
     def handle_writeaccess(self, data):
+        # Fixed with https://stackoverflow.com/questions/28334966/encoding-error-when-opening-an-excel-file-with-xlrd#new-answer
         DEBUG = 0
         if self.biff_version < 80:
             if not self.encoding:
@@ -1142,7 +1143,10 @@ class Book(BaseObject):
                 return
             strg = unpack_string(data, 0, self.encoding, lenlen=1)
         else:
-            strg = unpack_unicode(data, 0, lenlen=2)
+            try:
+                strg = unpack_unicode(data, 0, lenlen=2)
+            except:
+                strg = ""
         if DEBUG: fprintf(self.logfile, "WRITEACCESS: %d bytes; raw=%s %r\n", len(data), self.raw_user_name, strg)
         strg = strg.rstrip()
         self.user_name = strg
